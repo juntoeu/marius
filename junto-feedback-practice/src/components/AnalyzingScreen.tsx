@@ -140,7 +140,7 @@ export default function AnalyzingScreen() {
                 setRetryCount(0);
                 hasStartedFetch.current = false;
               }}
-              className="bg-[var(--junto-yellow)] text-[var(--junto-navy)] font-medium px-6 py-3 rounded-xl"
+              className="bg-[var(--junto-yellow)] text-[var(--junto-dark)] font-medium px-6 py-3 rounded-xl"
             >
               Erneut versuchen
             </button>

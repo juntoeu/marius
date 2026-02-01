@@ -61,7 +61,7 @@ export default function ModeSelectScreen() {
               disabled={isCheckingMic}
               className="bg-[var(--card-bg)] rounded-xl p-8 border-2 border-[var(--card-border)] hover:border-[var(--junto-yellow)] transition-colors text-left flex flex-col items-center disabled:opacity-50"
             >
-              <div className="w-16 h-16 rounded-full bg-[var(--junto-yellow-light)] flex items-center justify-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-[var(--junto-off-yellow)] flex items-center justify-center mb-6">
                 <Mic className="w-8 h-8 text-[var(--junto-yellow)]" />
               </div>
               <h2 className="text-xl font-semibold text-[var(--foreground)] mb-3">
@@ -80,7 +80,7 @@ export default function ModeSelectScreen() {
               onClick={handleTextSelect}
               className="bg-[var(--card-bg)] rounded-xl p-8 border-2 border-[var(--card-border)] hover:border-[var(--junto-yellow)] transition-colors text-left flex flex-col items-center"
             >
-              <div className="w-16 h-16 rounded-full bg-[var(--junto-yellow-light)] flex items-center justify-center mb-6">
+              <div className="w-16 h-16 rounded-full bg-[var(--junto-off-yellow)] flex items-center justify-center mb-6">
                 <MessageSquare className="w-8 h-8 text-[var(--junto-yellow)]" />
               </div>
               <h2 className="text-xl font-semibold text-[var(--foreground)] mb-3">

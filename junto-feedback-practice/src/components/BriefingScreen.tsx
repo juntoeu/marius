@@ -56,7 +56,7 @@ export default function BriefingScreen() {
           </div>
 
           {/* Goal Box */}
-          <div className="bg-[var(--junto-yellow-light)] rounded-xl p-6 mb-6 border border-[var(--junto-yellow)]/20">
+          <div className="bg-[var(--junto-off-yellow)] rounded-xl p-6 mb-6 border border-[var(--junto-yellow)]/20">
             <p className="text-[var(--foreground)]">
               <span className="font-semibold">Dein Ziel:</span> Führe ein
               Feedbackgespräch mit Sandra. Nutze die Gewaltfreie Kommunikation:
@@ -131,7 +131,7 @@ export default function BriefingScreen() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleContinue}
-              className="bg-[var(--junto-yellow)] text-[var(--junto-navy)] font-semibold px-12 py-4 rounded-xl text-lg shadow-md hover:shadow-lg transition-shadow"
+              className="bg-[var(--junto-yellow)] text-[var(--junto-dark)] font-semibold px-12 py-4 rounded-xl text-lg shadow-md hover:shadow-lg transition-shadow"
             >
               Weiter
             </motion.button>

@@ -106,7 +106,7 @@ export default function VoiceConversation() {
   const showProminentEnd = elapsedMinutes >= 2;
 
   return (
-    <div className="min-h-screen bg-[var(--junto-navy)] flex flex-col">
+    <div className="min-h-screen bg-[var(--junto-dark)] flex flex-col">
       {/* Top Bar */}
       <header className="flex items-center justify-between px-6 py-4">
         <span className="text-xl font-bold text-white">junto</span>
@@ -157,7 +157,7 @@ export default function VoiceConversation() {
                   setError(null);
                   startConversation();
                 }}
-                className="flex-1 bg-[var(--junto-yellow)] text-[var(--junto-navy)] font-medium py-3 rounded-lg"
+                className="flex-1 bg-[var(--junto-yellow)] text-[var(--junto-dark)] font-medium py-3 rounded-lg"
               >
                 Neu starten
               </button>

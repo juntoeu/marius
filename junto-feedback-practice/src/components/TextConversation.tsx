@@ -124,7 +124,7 @@ export default function TextConversation() {
   const showProminentEnd = elapsedMinutes >= 2;
 
   return (
-    <div className="min-h-screen bg-[var(--junto-navy)] flex flex-col">
+    <div className="min-h-screen bg-[var(--junto-dark)] flex flex-col">
       {/* Top Bar */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-white/10">
         <span className="text-xl font-bold text-white">junto</span>
@@ -165,14 +165,14 @@ export default function TextConversation() {
               onKeyDown={handleKeyDown}
               placeholder="Deine Antwort…"
               disabled={isLoading}
-              className="flex-1 bg-[var(--junto-navy-light)] text-white placeholder-white/40 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--junto-yellow)] disabled:opacity-50"
+              className="flex-1 bg-[var(--junto-dark-light)] text-white placeholder-white/40 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--junto-yellow)] disabled:opacity-50"
             />
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
-              className="bg-[var(--junto-yellow)] text-[var(--junto-navy)] p-3 rounded-xl disabled:opacity-50"
+              className="bg-[var(--junto-yellow)] text-[var(--junto-dark)] p-3 rounded-xl disabled:opacity-50"
             >
               <Send className="w-5 h-5" />
             </motion.button>
@@ -210,7 +210,7 @@ export default function TextConversation() {
                 onClick={() => {
                   setError(null);
                 }}
-                className="flex-1 bg-[var(--junto-yellow)] text-[var(--junto-navy)] font-medium py-3 rounded-lg"
+                className="flex-1 bg-[var(--junto-yellow)] text-[var(--junto-dark)] font-medium py-3 rounded-lg"
               >
                 Weiter schreiben
               </button>

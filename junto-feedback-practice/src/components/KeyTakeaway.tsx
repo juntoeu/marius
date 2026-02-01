@@ -15,11 +15,11 @@ export default function KeyTakeaway({ takeaway }: KeyTakeawayProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.5, duration: 0.5 }}
-          className="bg-[var(--junto-navy)] rounded-xl p-6 border-t-4 border-[var(--junto-yellow)]"
+          className="bg-[var(--junto-dark)] rounded-xl p-6 border-t-4 border-[var(--junto-yellow)]"
         >
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-full bg-[var(--junto-yellow)] flex items-center justify-center flex-shrink-0">
-              <Lightbulb className="w-5 h-5 text-[var(--junto-navy)]" />
+              <Lightbulb className="w-5 h-5 text-[var(--junto-dark)]" />
             </div>
             <div>
               <h4 className="text-sm font-semibold text-[var(--junto-yellow)] uppercase tracking-wide mb-2">

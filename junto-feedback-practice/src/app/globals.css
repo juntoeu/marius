@@ -1,39 +1,49 @@
 @import "tailwindcss";
 
 :root {
-  /* Junto Brand Colors */
-  --junto-yellow: #F5C518;
-  --junto-yellow-light: rgba(245, 197, 24, 0.1);
-  --junto-navy: #1E1E2E;
-  --junto-navy-light: #2A2A3E;
+  /* Junto Brand Colors - from brand guidelines */
+  --junto-dark: #1a1a2e;
+  --junto-dark-light: #2a2a4e;
+  --junto-yellow: #f7e547;
+  --junto-off-green: #d4e8d1;
+  --junto-off-yellow: #fef9e7;
+  --junto-off-blue: #dce8f5;
+  --junto-off-grey: #e1e3e6;
+  --junto-off-red: #f5e1e1;
+  --junto-green: #8bc48a;
 
-  /* Feedback Colors */
-  --score-low: #E57373;
+  /* Feedback Score Colors */
+  --score-low: #e57373;
   --score-medium: #FFB74D;
-  --score-good: #4DB6AC;
-  --score-excellent: #66BB6A;
+  --score-good: #8bc48a;
+  --score-excellent: #4caf50;
 
   /* UI Colors */
-  --background: #F8F9FA;
-  --background-dark: #1E1E2E;
-  --foreground: #1E1E2E;
+  --background: #dce8f5;
+  --background-dark: #1a1a2e;
+  --foreground: #1a1a2e;
   --foreground-light: #6B7280;
   --card-bg: #FFFFFF;
-  --card-border: #E5E7EB;
+  --card-border: #e1e3e6;
 
   /* Accent Colors */
-  --teal: #4DB6AC;
-  --teal-light: #E0F2F1;
-  --amber: #FFB74D;
-  --amber-light: #FFF3E0;
-  --coral: #E57373;
+  --teal: #8bc48a;
+  --teal-light: #d4e8d1;
+  --amber: #f7e547;
+  --amber-light: #fef9e7;
+  --coral: #e57373;
+  --coral-light: #f5e1e1;
 }
 
 @theme inline {
+  --color-junto-dark: var(--junto-dark);
   --color-junto-yellow: var(--junto-yellow);
-  --color-junto-yellow-light: var(--junto-yellow-light);
-  --color-junto-navy: var(--junto-navy);
-  --color-junto-navy-light: var(--junto-navy-light);
+  --color-junto-off-green: var(--junto-off-green);
+  --color-junto-off-yellow: var(--junto-off-yellow);
+  --color-junto-off-blue: var(--junto-off-blue);
+  --color-junto-off-grey: var(--junto-off-grey);
+  --color-junto-off-red: var(--junto-off-red);
+  --color-junto-green: var(--junto-green);
   --color-score-low: var(--score-low);
   --color-score-medium: var(--score-medium);
   --color-score-good: var(--score-good);
@@ -43,6 +53,7 @@
   --color-amber: var(--amber);
   --color-amber-light: var(--amber-light);
   --color-coral: var(--coral);
+  --color-coral-light: var(--coral-light);
   --color-background: var(--background);
   --color-background-dark: var(--background-dark);
   --color-foreground: var(--foreground);

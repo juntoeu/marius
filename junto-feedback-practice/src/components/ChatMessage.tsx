@@ -19,7 +19,7 @@ export default function ChatMessage({ role, text, isTyping = false }: ChatMessag
         <div className="w-10 h-10 rounded-full bg-[#5B7BA0] flex items-center justify-center text-white font-medium text-sm flex-shrink-0">
           {scenario.personaInitials}
         </div>
-        <div className="bg-[var(--junto-navy-light)] rounded-2xl rounded-tl-md px-4 py-3">
+        <div className="bg-[var(--junto-dark-light)] rounded-2xl rounded-tl-md px-4 py-3">
           <div className="flex gap-1">
             <span className="w-2 h-2 bg-white/50 rounded-full typing-dot" />
             <span className="w-2 h-2 bg-white/50 rounded-full typing-dot" />
@@ -45,7 +45,7 @@ export default function ChatMessage({ role, text, isTyping = false }: ChatMessag
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-3 ${
           isAgent
-            ? 'bg-[var(--junto-navy-light)] text-white rounded-tl-md'
+            ? 'bg-[var(--junto-dark-light)] text-white rounded-tl-md'
             : 'bg-[var(--teal)] text-white rounded-tr-md'
         }`}
       >
