@@ -1,54 +1,47 @@
 # Sitzplan · Hochzeit
 
 Ein interaktiver Sitzplan-Planer für die Hochzeit (Samstag, 110 Plätze, 111 Gäste).
-Komplett ohne Build-Schritt und ohne Abhängigkeiten – nur HTML, CSS und etwas
-JavaScript. Funktioniert auf Desktop **und** Touch (Handy/Tablet).
+Statische Web-App ohne Build-Schritt. Funktioniert auf Desktop **und** Touch.
+Optional mit **geteiltem Live-Speicher** (Supabase) und **Passwortschutz**.
 
 ## Bedienung
 
-- **Anklicken:** Erst einen Gast (im Pool oder auf einem Stuhl) anklicken, dann
-  auf einen freien Stuhl klicken – fertig. Zwei besetzte Stühle nacheinander
-  anklicken tauscht die Gäste.
-- **Ziehen (Drag & Drop):** Gast aus dem Pool oder von einem Stuhl auf einen
-  anderen Stuhl ziehen.
-  - Auf einen besetzten Stuhl ziehen → **Tausch**.
-  - Einen besetzten Stuhl zurück in den Pool ziehen → Gast **entfernen**.
-- **Suchen:** Über das Suchfeld einen Gast im Pool schnell finden.
-- **Zoom:** Plus/Minus oder ⤢ (einpassen).
-- **Drucken / PDF:** Erzeugt eine saubere Ansicht nur mit dem Raumplan.
-- **Reset:** Setzt alle Platzierungen zurück.
-
-Der Stand wird automatisch im Browser gespeichert (localStorage), es geht also
-nichts verloren, wenn die Seite neu geladen wird.
+- **Anklicken:** Erst einen Gast (Pool oder Stuhl) anklicken, dann auf einen
+  freien Stuhl klicken. Zwei besetzte Stühle nacheinander = Tausch.
+- **Ziehen:** Gast auf einen Stuhl ziehen. Auf besetzten Stuhl = Tausch.
+  Besetzten Stuhl zurück in den Pool ziehen = entfernen.
+- **Suchen / Zoom / Drucken (PDF) / Reset** über die Kopfzeile.
 
 ## Lokal starten
 
-Am einfachsten: die Datei `index.html` doppelklicken – sie öffnet sich direkt im
-Browser.
+`index.html` doppelklicken – oder `python3 -m http.server 8000` im Ordner.
+Ohne Supabase-Keys speichert die App lokal im Browser (localStorage).
 
-Oder über einen kleinen lokalen Server (empfohlen, falls der Browser `file://`
-einschränkt):
+## Geteilter Live-Speicher + Passwort (für die Planung zu zweit)
 
-```bash
-cd sitzplan
-python3 -m http.server 8000
-# dann im Browser öffnen: http://localhost:8000
-```
+So sehen zwei Personen denselben Plan in Echtzeit, geräteübergreifend:
 
-## Später im Web veröffentlichen
+1. **Supabase-Projekt** anlegen (kostenlos, https://supabase.com).
+2. In Supabase: **SQL Editor** → Inhalt von `supabase-setup.sql` einfügen → **Run**.
+3. In Supabase: **Project Settings → API** → `Project URL` und `anon public`-Key kopieren.
+4. In `config.js` eintragen: `SUPABASE_URL`, `SUPABASE_ANON_KEY` und ein gemeinsames `PASSWORD`.
 
-Da es nur statische Dateien sind, lässt sich der Ordner `sitzplan/` direkt auf
-jeden Static-Host hochladen:
+Leere Keys = reiner Lokal-Modus. Leeres `PASSWORD` = kein Passwortschutz.
 
-- **Vercel / Netlify:** Ordner verbinden bzw. per Drag & Drop hochladen, kein
-  Build nötig (Framework: „Other“, Output-Verzeichnis: `sitzplan`).
-- **GitHub Pages:** Repository-Pages aktivieren und auf den Ordner zeigen.
+> Sicherheit: Der `anon`-Key gehört bewusst in den Browser-Code; der Zugang wird
+> übers Passwort + Supabase-Regeln geschützt. Für ein privates Gäste-Tool ist das
+> angemessen (keine Hochsicherheit).
 
-> Hinweis: Die Platzierung wird pro Gerät/Browser gespeichert. Wenn ihr (du und
-> deine Frau) gemeinsam am selben Stand arbeiten wollt, bräuchte es später eine
-> kleine Backend-/Sync-Lösung – das lässt sich bei Bedarf ergänzen.
+## Auf Vercel deployen (Auto-Deploy)
+
+1. Diesen Ordner als **eigenes GitHub-Repo** hochladen.
+2. Auf https://vercel.com das Repo importieren (**Framework: „Other"**, keine
+   Build-Einstellungen – Dateien liegen an der Wurzel).
+3. Ab dann deployt jeder Git-Push automatisch.
 
 ## Dateien
 
-- `index.html` – Aufbau und Styling
-- `app.js` – Gästeliste, Tisch-Layout und die gesamte Interaktion
+- `index.html` – Aufbau & Styling, Passwort-Gate
+- `app.js` – Gästeliste, Tisch-Layout, Interaktion, Cloud-Sync
+- `config.js` – eure Keys/Passwort (hier eintragen)
+- `supabase-setup.sql` – einmalig in Supabase ausführen

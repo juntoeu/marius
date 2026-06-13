@@ -7,6 +7,13 @@
 (() => {
   "use strict";
 
+  /* ----------------------------- Config --------------------------------- */
+  // Werte werden in config.js gesetzt (window.SITZPLAN_CONFIG).
+  const CONFIG = Object.assign(
+    { SUPABASE_URL: "", SUPABASE_ANON_KEY: "", PASSWORD: "", DAY: "samstag" },
+    (typeof window !== "undefined" && window.SITZPLAN_CONFIG) || {}
+  );
+
   /* ----------------------------- Guest data ----------------------------- */
   const GUEST_NAMES = [
     "Marc Scheper", "selina", "Manuel", "Fabian Harb", "Charlotte Beimesche",
@@ -115,23 +122,28 @@
   let assignments = {};
   let selected = null; // { type: 'guest'|'seat', id }
 
+  const GUEST_IDS = new Set(guests.map((g) => g.id));
+  // Keep only valid seat/guest pairs, and enforce "one guest in one seat".
+  function sanitize(obj) {
+    const valid = {};
+    const usedGuests = new Set();
+    Object.entries(obj || {}).forEach(([seatId, gid]) => {
+      if (seatById[seatId] && GUEST_IDS.has(gid) && !usedGuests.has(gid)) {
+        valid[seatId] = gid;
+        usedGuests.add(gid);
+      }
+    });
+    return valid;
+  }
   function load() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const data = JSON.parse(raw);
-        // keep only valid seats/guests
-        const valid = {};
-        const guestIds = new Set(guests.map((g) => g.id));
-        Object.entries(data.assignments || {}).forEach(([seatId, gid]) => {
-          if (seatById[seatId] && guestIds.has(gid)) valid[seatId] = gid;
-        });
-        assignments = valid;
-      }
+      if (raw) assignments = sanitize((JSON.parse(raw) || {}).assignments);
     } catch (e) { assignments = {}; }
   }
-  function save() {
+  function save(localOnly) {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ assignments })); } catch (e) {}
+    if (!localOnly) scheduleCloudSave();
   }
 
   function guestById(id) { return guests.find((g) => g.id === id); }
@@ -300,7 +312,7 @@
     }
   }
 
-  function renderAll() { renderChips(); renderSeats(); renderStats(); renderHint(); save(); }
+  function renderAll(localOnly) { renderChips(); renderSeats(); renderStats(); renderHint(); save(localOnly); }
 
   function firstWord(name) { return name.replace(/\(.*?\)/g, "").trim().split(/\s+/)[0]; }
   function escapeHtml(s) { return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
@@ -447,15 +459,18 @@
       return;
     }
 
+    let changed = false;
     const tgt = dropTargetAt(e.clientX, e.clientY);
     if (tgt.kind === "seat") {
+      const seatId = tgt.el.dataset.seat;
       const gid = d.type === "guest" ? d.id : d.guestId;
-      dropGuestOnSeat(gid, tgt.el.dataset.seat);
+      if (!(d.type === "seat" && d.id === seatId)) { dropGuestOnSeat(gid, seatId); changed = true; }
     } else if (tgt.kind === "pool") {
-      if (d.type === "seat") { unassignSeat(d.id); toast(`${guestById(d.guestId).name} → Pool`); }
+      if (d.type === "seat") { unassignSeat(d.id); toast(`${guestById(d.guestId).name} → Pool`); changed = true; }
     }
     clearSelection();
-    renderAll();
+    renderAll(!changed);
+    flushPendingRemote(changed);
   }
 
   function dropTargetAt(x, y) {
@@ -528,10 +543,135 @@
     window.addEventListener("resize", () => { if (zoom < 1) fitZoom(); });
   }
 
+  /* --------------------------- Cloud sync (Supabase) -------------------- */
+  // Shared, live state across devices. Falls back to local-only when not configured.
+  let sb = null;
+  let lastSyncedStamp = null;     // newest stamp we have applied/written
+  let pendingRemote = null;       // remote state that arrived mid-drag
+  let pendingRemoteStamp = null;
+  let cloudSaveTimer = null;
+  let cloudReady = false;
+
+  function cloudEnabled() {
+    return !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY &&
+              typeof window !== "undefined" && window.supabase);
+  }
+
+  function cloudInit() {
+    if (!cloudEnabled()) return;
+    try { sb = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY); }
+    catch (e) { console.warn("Supabase init fehlgeschlagen:", e); sb = null; return; }
+    cloudLoad();
+    sb.channel("seating-" + CONFIG.DAY)
+      .on("postgres_changes",
+        { event: "*", schema: "public", table: "seating_plans", filter: "id=eq." + CONFIG.DAY },
+        (payload) => applyRemote(payload.new))
+      .subscribe();
+  }
+
+  async function cloudLoad() {
+    try {
+      const { data, error } = await sb
+        .from("seating_plans").select("assignments,updated_at")
+        .eq("id", CONFIG.DAY).maybeSingle();
+      if (error) { console.warn("Cloud-Load:", error.message); return; }
+      cloudReady = true;
+      if (!data) {
+        // first run: create the shared row, seeded from whatever is local
+        await sb.from("seating_plans")
+          .upsert({ id: CONFIG.DAY, assignments, updated_at: nowStamp() });
+        return;
+      }
+      const remote = sanitize(data.assignments);
+      const localHas = Object.keys(assignments).length > 0;
+      if (Object.keys(remote).length === 0 && localHas) {
+        // cloud empty but we have a local plan -> migrate it up once
+        scheduleCloudSave(true);
+      } else {
+        assignments = remote;
+        lastSavedJson = JSON.stringify(assignments);
+        lastSyncedStamp = data.updated_at;
+        renderAll(true);
+      }
+    } catch (e) { console.warn("Cloud-Load:", e); }
+  }
+
+  function applyRemote(row) {
+    if (!row || !row.updated_at) return;
+    if (lastSyncedStamp && row.updated_at <= lastSyncedStamp) return; // older or our own echo
+    const remote = sanitize(row.assignments);
+    if (drag) { // don't disrupt an active drag; apply after drop
+      if (!pendingRemoteStamp || row.updated_at > pendingRemoteStamp) {
+        pendingRemote = remote; pendingRemoteStamp = row.updated_at;
+      }
+      return;
+    }
+    lastSyncedStamp = row.updated_at;
+    assignments = remote;
+    lastSavedJson = JSON.stringify(assignments);
+    if (selected && selected.type === "seat" && !assignments[selected.id]) clearSelection();
+    renderAll(true);
+  }
+
+  let lastSavedJson = null;
+  function scheduleCloudSave(immediate) {
+    if (!sb) return;
+    const json = JSON.stringify(assignments);
+    if (json === lastSavedJson) return;     // nothing actually changed
+    lastSavedJson = json;
+    const stamp = nowStamp();
+    lastSyncedStamp = stamp;                 // mark synchronously so our echo is ignored
+    clearTimeout(cloudSaveTimer);
+    const doSave = async () => {
+      try { await sb.from("seating_plans").upsert({ id: CONFIG.DAY, assignments: JSON.parse(json), updated_at: stamp }); }
+      catch (e) { console.warn("Cloud-Save:", e); }
+    };
+    if (immediate) doSave(); else cloudSaveTimer = setTimeout(doSave, 350);
+  }
+
+  // Apply a remote snapshot that arrived while the user was dragging.
+  function flushPendingRemote(localChanged) {
+    if (pendingRemote) {
+      if (!localChanged && (!lastSyncedStamp || pendingRemoteStamp > lastSyncedStamp)) {
+        lastSyncedStamp = pendingRemoteStamp;
+        assignments = pendingRemote;
+        lastSavedJson = JSON.stringify(assignments);
+        if (selected && selected.type === "seat" && !assignments[selected.id]) clearSelection();
+        renderAll(true);
+      }
+      pendingRemote = null; pendingRemoteStamp = null;
+    }
+  }
+
+  function nowStamp() { return new Date().toISOString(); }
+
+  /* ----------------------------- Password gate -------------------------- */
+  function initGate(onSuccess) {
+    const gate = document.getElementById("gate");
+    if (!CONFIG.PASSWORD) { if (gate) gate.remove(); onSuccess(); return; }
+    if (localStorage.getItem("sitzplan.auth") === CONFIG.PASSWORD) { gate.remove(); onSuccess(); return; }
+    gate.classList.add("show");
+    const input = document.getElementById("gateInput");
+    const err = document.getElementById("gateErr");
+    const tryPass = () => {
+      if (input.value === CONFIG.PASSWORD) {
+        try { localStorage.setItem("sitzplan.auth", input.value); } catch (e) {}
+        gate.remove(); onSuccess();
+      } else { err.style.display = "block"; input.select(); }
+    };
+    document.getElementById("gateBtn").onclick = tryPass;
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") tryPass(); });
+    setTimeout(() => input.focus(), 50);
+  }
+
   /* ------------------------------- Init --------------------------------- */
-  load();
-  buildStage();
-  wire();
-  renderAll();
-  fitZoom();
+  function startApp() {
+    load();
+    buildStage();
+    wire();
+    renderAll(true);
+    fitZoom();
+    cloudInit();
+  }
+  initGate(startApp);
 })();
